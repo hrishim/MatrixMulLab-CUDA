@@ -1,8 +1,8 @@
 # Name of the CUDA compiler
 NVCC := nvcc
 
-# Choose your compute architecture (update if needed for your GPU)
-ARCH := -arch=sm_75
+# Choose your compute architecture (update if needed for your GPU) sm_86:  RTX 30xx  sm_80: A100, sm_80: RTX 40xx, sm_90: H100, sm_100: B100, RTX 50xx
+ARCH := -arch=sm_86
 
 # Output executable name
 TARGET := mat_mul
