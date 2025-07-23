@@ -1,32 +1,50 @@
-# Name of the CUDA compiler
+# CUDA compiler
 NVCC := nvcc
 
-# Choose your compute architecture (update if needed for your GPU) sm_86:  RTX 30xx  sm_80: A100, sm_80: RTX 40xx, sm_90: H100, sm_100: B100, RTX 50xx
+# C++ compiler for non-CUDA files
+CXX := g++
+
+# Architecture
 ARCH := -arch=sm_86
 
-# Output executable name
+# Output executable
 TARGET := mat_mul
 
 # Source files
-SRCS := mat_utils.cu mat_mul.cu
+CU_SRCS := mat_utils.cu mat_mul.cu
+CPP_SRCS := matrix.cpp
+
+# Header files
+HEADERS := matrix.hpp mat_utils.h
 
 # Object files
-OBJS := $(SRCS:.cu=.o)
+CU_OBJS := $(CU_SRCS:.cu=.o)
+CPP_OBJS := $(CPP_SRCS:.cpp=.o)
+OBJS := $(CU_OBJS) $(CPP_OBJS)
 
-# Compilation flags (add -O2 for optimization, -g for debugging)
-NVCCFLAGS := -ccbin gcc-12 $(ARCH) -std=c++11
+# Compilation flags
+NVCCFLAGS := -ccbin gcc-12 $(ARCH) -std=c++17 -Xcompiler="-fPIC" -lcudart
+CXXFLAGS := -std=c++17 -Wall -Wextra -fPIC
 
-# Default build rule
+# Linker flags
+LDFLAGS := -lcudart -lstdc++
+
+# Build rules
 all: $(TARGET)
 
-# Link executable from object files
 $(TARGET): $(OBJS)
-	$(NVCC) $(NVCCFLAGS) -o $@ $^
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ $^
 
-# Compile each .cu file to .o
-%.o: %.cu mat_utils.h
+# CUDA object files with specific dependencies
+mat_utils.o: mat_utils.cu matrix.hpp mat_utils.h
 	$(NVCC) $(NVCCFLAGS) -c $< -o $@
 
-# Clean rule to remove all generated files
+mat_mul.o: mat_mul.cu mat_utils.h
+	$(NVCC) $(NVCCFLAGS) -c $< -o $@
+
+# C++ object file with specific dependencies
+matrix.o: matrix.cpp matrix.hpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
 clean:
-	rm -f $(OBJS) $(TARGET)	
+	rm -f $(OBJS) $(TARGET)

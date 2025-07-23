@@ -1,19 +1,44 @@
 #include <stdio.h>
+#include <iostream>
 #include "mat_utils.h"
 
 __global__ void matmul(float* A, float* B, float* C, int M, int K, int N) {
 
+    //Multiply row of A into column of B
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+    int idy = threadIdx.y + blockIdx.y * blockDim.y;
+
+    if((idx<M) && (idy<N)) {
+        float sum = 0;
+        for(int i=0; i<K; i++) {
+            sum += A[idx * K + i] * B[i * N + idy];
+        }
+        C[idx * N + idy] = sum;
+    }
 } 
 
-int main() {
-    float *h_A, *h_B, *h_C;
-    float *d_A, *d_B, *d_C;
-    int M = 1024; 
-    int K = 1024; 
-    int N = 1024;
+void test_print_matrix(){
 
-    create_matrices(&h_A, &h_B, &h_C, &d_A, &d_B, &d_C, M, K, N);
-    matmul<<<1, 1>>>(d_A, d_B, d_C, M, K, N);
-    cudaMemcpy(h_C, d_C, M * N * sizeof(float), cudaMemcpyDeviceToHost);
+    Matrix<float> h_A = Matrix<float>::identity_matrix(3, 3);
+    h_A.print();
+    std::cout << "\n";
+    Matrix<float> h_B = Matrix<float>::random_matrix(3, 3);
+    h_B.print();
+    std::cout << "\n";
+    Matrix<float> h_C = Matrix<float>::zero_matrix(3, 3);
+    h_C.print();
+}
+
+int main() {
+    //float *h_A, *h_B, *h_C;
+    //float *d_A, *d_B, *d_C;
+    //int M = 1024; 
+    //int K = 1024; 
+    //int N = 1024;
+
+    test_print_matrix();
+    //create_matrices(&h_A, &h_B, &h_C, &d_A, &d_B, &d_C, M, K, N);
+    //matmul<<<1, 1>>>(d_A, d_B, d_C, M, K, N);
+    //cudaMemcpy(h_C, d_C, M * N * sizeof(float), cudaMemcpyDeviceToHost);
     return 0;
 }
