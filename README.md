@@ -1,2 +1,2 @@
 # MatrixMulLab-CUDA
-My expriments to write matrix multiplication in CUDA
+My experiments to write matrix multiplication in CUDA
