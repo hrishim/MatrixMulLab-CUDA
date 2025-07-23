@@ -7,24 +7,26 @@ CXX := g++
 # Architecture
 ARCH := -arch=sm_86
 
-# Output executable
-TARGET := mat_mul
+# Directories
+SRC_DIR := src
+INC_DIR := include
+BUILD_DIR := build
 
 # Source files
-CU_SRCS := mat_utils.cu mat_mul.cu
-CPP_SRCS := matrix.cpp
-
-# Header files
-HEADERS := matrix.hpp mat_utils.h
+CU_SRCS := $(SRC_DIR)/mat_utils.cu $(SRC_DIR)/mat_mul.cu
+CPP_SRCS := $(SRC_DIR)/matrix.cpp
 
 # Object files
-CU_OBJS := $(CU_SRCS:.cu=.o)
-CPP_OBJS := $(CPP_SRCS:.cpp=.o)
+CU_OBJS := $(BUILD_DIR)/mat_utils.o $(BUILD_DIR)/mat_mul.o
+CPP_OBJS := $(BUILD_DIR)/matrix.o
 OBJS := $(CU_OBJS) $(CPP_OBJS)
 
+# Output executable
+TARGET := $(BUILD_DIR)/mat_mul
+
 # Compilation flags
-NVCCFLAGS := -ccbin gcc-12 $(ARCH) -std=c++17 -Xcompiler="-fPIC" -lcudart
-CXXFLAGS := -std=c++17 -Wall -Wextra -fPIC
+NVCCFLAGS := -ccbin gcc-12 $(ARCH) -std=c++17 -Xcompiler="-fPIC" -lcudart -I$(INC_DIR)
+CXXFLAGS := -std=c++17 -Wall -Wextra -fPIC -I$(INC_DIR)
 
 # Linker flags
 LDFLAGS := -lcudart -lstdc++
@@ -32,19 +34,21 @@ LDFLAGS := -lcudart -lstdc++
 # Build rules
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ $^
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
-# CUDA object files with specific dependencies
-mat_utils.o: mat_utils.cu matrix.hpp mat_utils.h
+$(TARGET): $(BUILD_DIR) $(OBJS)
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ $(OBJS)
+
+# CUDA object files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cu $(INC_DIR)/*.h $(INC_DIR)/*.hpp | $(BUILD_DIR)
 	$(NVCC) $(NVCCFLAGS) -c $< -o $@
 
-mat_mul.o: mat_mul.cu mat_utils.h
-	$(NVCC) $(NVCCFLAGS) -c $< -o $@
-
-# C++ object file with specific dependencies
-matrix.o: matrix.cpp matrix.hpp
+# C++ object files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp $(INC_DIR)/*.h $(INC_DIR)/*.hpp | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -rf $(BUILD_DIR)
+
+.PHONY: all clean
