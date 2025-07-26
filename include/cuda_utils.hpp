@@ -1,7 +1,7 @@
 #ifndef CUDA_UTILS_HPP
 #define CUDA_UTILS_HPP
 
-#include <cuda_runtime.h>
+//#include <cuda_runtime.h>
 
 // Custom deleter for CUDA device memory
 struct CudaDeleter {

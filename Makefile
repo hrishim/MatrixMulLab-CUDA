@@ -27,6 +27,7 @@ TARGET := $(BUILD_DIR)/mat_mul
 # Compilation flags
 NVCCFLAGS := -ccbin gcc-12 $(ARCH) -std=c++17 -Xcompiler="-fPIC" -lcudart -I$(INC_DIR)
 CXXFLAGS := -std=c++17 -Wall -Wextra -fPIC -I$(INC_DIR)
+CXXFLAGS += -I/usr/local/cuda/include
 
 # Linker flags
 LDFLAGS := -lcudart -lstdc++

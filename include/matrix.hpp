@@ -2,18 +2,27 @@
 #define MATRIX_HPP
 
 #include <memory>
+#include "cuda_utils.hpp"
 
 template<typename T>
 struct Matrix {
     int M;
     int N;
+    bool in_device;
     std::unique_ptr<T[]> data;
+    cu_unique_ptr<T[]> device_data;
 
     // Constructor
-    Matrix(int rows, int cols);
+    Matrix(int rows, int cols, bool device=false);
 
     // Clone method (deep copy)
     Matrix<T> clone() const;
+
+    // Clone device matrix to host matrix
+    Matrix<T> clone_device_to_host() const;
+
+    // Clone host matrix to device matrix
+    Matrix<T> clone_host_to_device() const;
 
     // Element access
     T& operator()(int i, int j);

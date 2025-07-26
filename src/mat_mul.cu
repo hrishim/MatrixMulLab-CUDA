@@ -5,15 +5,15 @@
 __global__ void matmul(float* A, float* B, float* C, int M, int K, int N) {
 
     //Multiply row of A into column of B
-    int idx = threadIdx.x + blockIdx.x * blockDim.x;
-    int idy = threadIdx.y + blockIdx.y * blockDim.y;
+    int col = threadIdx.x + blockIdx.x * blockDim.x;
+    int row = threadIdx.y + blockIdx.y * blockDim.y;
 
-    if((idx<M) && (idy<N)) {
+    if((row<M) && (col<N)) {
         float sum = 0;
         for(int i=0; i<K; i++) {
-            sum += A[idx * K + i] * B[i * N + idy];
+            sum += A[row * K + i] * B[col * K + i];
         }
-        C[idx * N + idy] = sum;
+        C[row * N + col] = sum;
     }
 } 
 
@@ -32,11 +32,19 @@ void test_print_matrix(){
 int main() {
     //float *h_A, *h_B, *h_C;
     //float *d_A, *d_B, *d_C;
-    //int M = 1024; 
-    //int K = 1024; 
-    //int N = 1024;
+    int M = 1024; 
+    int K = 1024; 
+    int N = 1024;
 
     test_print_matrix();
+    Matrix<float> h_A = Matrix<float>::random_matrix(M, K);
+    Matrix<float> h_B = Matrix<float>::random_matrix(K, N);
+    Matrix<float> d_A = h_A.clone_host_to_device();
+    Matrix<float> d_B = h_B.clone_host_to_device();
+    Matrix<float> d_C = Matrix<float>(M, N, true);
+    matmul<<<1,1>>>(d_A.device_data.get(), d_B.device_data.get(), d_C.device_data.get(), M, K, N);
+    Matrix<float> h_C = d_C.clone_device_to_host();
+
     //create_matrices(&h_A, &h_B, &h_C, &d_A, &d_B, &d_C, M, K, N);
     //matmul<<<1, 1>>>(d_A, d_B, d_C, M, K, N);
     //cudaMemcpy(h_C, d_C, M * N * sizeof(float), cudaMemcpyDeviceToHost);
